@@ -519,128 +519,138 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
 
     let mut full_log_msg = String::new();
     let mut last_hint: Option<DisplayHintWrapper> = None;
-    for _ in 0..num_args.ok_or(())? {
+    let arg_count = num_args.ok_or(())?;
+    debug!("Starting to parse {} arguments", arg_count);
+
+    for i in 0..arg_count {
+        debug!("Reading argument {}/{}", i + 1, arg_count);
         let (ArgumentWrapper(tag), value, rest) = try_read(buf)?;
 
         match tag {
             Argument::DisplayHint => {
-                last_hint = Some(unsafe { ptr::read_unaligned(value.as_ptr() as *const _) });
+                let hint = unsafe { ptr::read_unaligned(value.as_ptr() as *const DisplayHint) };
+                debug!("Argument DisplayHint: {:?}", hint);
+                last_hint = Some(DisplayHintWrapper(hint));
             }
             Argument::I8 => {
-                full_log_msg.push_str(
-                    &i8::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = i8::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument I8: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::I16 => {
-                full_log_msg.push_str(
-                    &i16::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = i16::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument I16: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::I32 => {
-                full_log_msg.push_str(
-                    &i32::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = i32::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument I32: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::I64 => {
-                full_log_msg.push_str(
-                    &i64::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = i64::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument I64: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::Isize => {
-                full_log_msg.push_str(
-                    &isize::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = isize::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument Isize: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::U8 => {
-                full_log_msg.push_str(
-                    &u8::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = u8::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument U8: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::U16 => {
-                full_log_msg.push_str(
-                    &u16::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = u16::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument U16: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::U32 => {
-                full_log_msg.push_str(
-                    &u32::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = u32::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument U32: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::U64 => {
-                full_log_msg.push_str(
-                    &u64::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = u64::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument U64: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::Usize => {
-                full_log_msg.push_str(
-                    &usize::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = usize::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument Usize: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::F32 => {
-                full_log_msg.push_str(
-                    &f32::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = f32::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument F32: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::F64 => {
-                full_log_msg.push_str(
-                    &f64::from_ne_bytes(value.try_into().map_err(|_| ())?)
-                        .format(last_hint.take())?,
-                );
+                let val = f64::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Argument F64: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::Ipv4Addr => {
-                let value: [u8; 4] = value.try_into().map_err(|_| ())?;
-                let value = Ipv4Addr::from(value);
-                full_log_msg.push_str(&value.format(last_hint.take())?)
+                let bytes: [u8; 4] = value.try_into().map_err(|_| ())?;
+                let val = Ipv4Addr::from(bytes);
+                debug!("Argument Ipv4Addr: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::Ipv6Addr => {
-                let value: [u8; 16] = value.try_into().map_err(|_| ())?;
-                let value = Ipv6Addr::from(value);
-                full_log_msg.push_str(&value.format(last_hint.take())?)
+                let bytes: [u8; 16] = value.try_into().map_err(|_| ())?;
+                let val = Ipv6Addr::from(bytes);
+                debug!("Argument Ipv6Addr: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::ArrU8Len4 => {
-                let value: [u8; 4] = value.try_into().map_err(|_| ())?;
-                full_log_msg.push_str(&value.format(last_hint.take())?);
+                let val: [u8; 4] = value.try_into().map_err(|_| ())?;
+                debug!("Argument ArrU8Len4: {:?} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::ArrU8Len6 => {
-                let value: [u8; 6] = value.try_into().map_err(|_| ())?;
-                full_log_msg.push_str(&value.format(last_hint.take())?);
+                let val: [u8; 6] = value.try_into().map_err(|_| ())?;
+                debug!("Argument ArrU8Len6: {:?} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::ArrU8Len16 => {
-                let value: [u8; 16] = value.try_into().map_err(|_| ())?;
-                full_log_msg.push_str(&value.format(last_hint.take())?);
+                let val: [u8; 16] = value.try_into().map_err(|_| ())?;
+                debug!("Argument ArrU8Len16: {:?} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::ArrU16Len8 => {
                 let data: [u8; 16] = value.try_into().map_err(|_| ())?;
-                let mut value: [u16; 8] = Default::default();
+                let mut val: [u16; 8] = Default::default();
                 for (i, s) in data.chunks_exact(2).enumerate() {
-                    value[i] = ((s[1] as u16) << 8) | s[0] as u16;
+                    val[i] = ((s[1] as u16) << 8) | s[0] as u16;
                 }
-                full_log_msg.push_str(&value.format(last_hint.take())?);
+                debug!("Argument ArrU16Len8: {:?} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::Bytes => {
+                debug!("Argument Bytes: {:?} (with hint: {:?})", value, last_hint.map(|h| h.0));
                 full_log_msg.push_str(&value.format(last_hint.take())?);
             }
-            Argument::Str => match str::from_utf8(value) {
-                Ok(v) => {
-                    full_log_msg.push_str(v);
+            Argument::Str => {
+                match str::from_utf8(value) {
+                    Ok(v) => {
+                        debug!("Argument Str: '{}' (with hint: {:?})", v, last_hint.map(|h| h.0));
+                        full_log_msg.push_str(v);
+                    }
+                    Err(e) => {
+                        error!("received invalid utf8 string: {}", e);
+                        debug!("Invalid UTF-8 bytes: {:?}", value);
+                    }
                 }
-                Err(e) => error!("received invalid utf8 string: {}", e),
             },
         }
 
+        debug!("Remaining buffer length after argument {}: {}", i + 1, rest.len());
         buf = rest;
     }
+
+    debug!("Final log message: '{}'", full_log_msg);
 
     logger.log(
         &Record::builder()
