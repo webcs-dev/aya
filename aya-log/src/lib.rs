@@ -512,7 +512,23 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
                 line = Some(line_num);
             }
             RecordField::NumArgs => {
-                let args_count = usize::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("NumArgs: attempting to convert bytes: {:?}", value);
+                debug!("NumArgs: byte length: {}", value.len());
+                let args_count = match value.try_into() {
+                    Ok(bytes) => {
+                        debug!("NumArgs: successfully converted to fixed size array");
+                        match usize::from_ne_bytes(bytes) {
+                            val => {
+                                debug!("NumArgs: successfully converted to usize: {}", val);
+                                val
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        debug!("NumArgs: failed to convert bytes to fixed size array");
+                        return Err(());
+                    }
+                };
                 debug!("Field NumArgs: {}", args_count);
                 debug!("About to parse {} arguments with remaining buffer length: {}", args_count, rest.len());
                 num_args = Some(args_count);
@@ -526,7 +542,8 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
     let mut full_log_msg = String::new();
     let mut last_hint: Option<DisplayHintWrapper> = None;
     let arg_count = num_args.ok_or(())?;
-    debug!("Starting to parse {} arguments", arg_count);
+    debug!("Starting to parse {} arguments with buffer: {:?}", arg_count, buf);
+    debug!("Buffer length before parsing arguments: {}", buf.len());
 
     for i in 0..arg_count {
         debug!("Reading argument {}/{}", i + 1, arg_count);
