@@ -472,6 +472,7 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
     for i in 0..LOG_FIELDS {
         debug!("Reading field {}/{}", i + 1, LOG_FIELDS);
         let (RecordFieldWrapper(tag), value, rest) = try_read(buf)?;
+        debug!("Read field type: {:?}", tag);
 
         match tag {
             RecordField::Target => {
