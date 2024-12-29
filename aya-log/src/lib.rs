@@ -473,6 +473,10 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
         debug!("Reading field {}/{}", i + 1, LOG_FIELDS);
         let (RecordFieldWrapper(tag), value, rest) = try_read(buf)?;
         debug!("Read field type: {:?}", tag);
+        debug!("Raw value bytes: {:?}, UTF-8 string: {:?}", 
+            value, 
+            std::str::from_utf8(value).unwrap_or("<invalid UTF-8>")
+        );
 
         match tag {
             RecordField::Target => {
