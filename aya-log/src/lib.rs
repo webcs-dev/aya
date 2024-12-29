@@ -469,39 +469,51 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
     let mut line = None;
     let mut num_args = None;
 
-    for _ in 0..LOG_FIELDS {
+    for i in 0..LOG_FIELDS {
+        debug!("Reading field {}/{}", i + 1, LOG_FIELDS);
         let (RecordFieldWrapper(tag), value, rest) = try_read(buf)?;
 
         match tag {
             RecordField::Target => {
-                target = Some(str::from_utf8(value).map_err(|_| ())?);
+                let target_str = str::from_utf8(value).map_err(|_| ())?;
+                debug!("Field Target: '{}'", target_str);
+                target = Some(target_str);
             }
             RecordField::Level => {
-                level = Some({
-                    let level = unsafe { ptr::read_unaligned(value.as_ptr() as *const _) };
-                    match level {
-                        Level::Error => log::Level::Error,
-                        Level::Warn => log::Level::Warn,
-                        Level::Info => log::Level::Info,
-                        Level::Debug => log::Level::Debug,
-                        Level::Trace => log::Level::Trace,
-                    }
-                })
+                let level_val = unsafe { ptr::read_unaligned(value.as_ptr() as *const Level) };
+                let log_level = match level_val {
+                    Level::Error => log::Level::Error,
+                    Level::Warn => log::Level::Warn,
+                    Level::Info => log::Level::Info,
+                    Level::Debug => log::Level::Debug,
+                    Level::Trace => log::Level::Trace,
+                };
+                debug!("Field Level: {:?}", log_level);
+                level = Some(log_level);
             }
             RecordField::Module => {
-                module = Some(str::from_utf8(value).map_err(|_| ())?);
+                let module_str = str::from_utf8(value).map_err(|_| ())?;
+                debug!("Field Module: '{}'", module_str);
+                module = Some(module_str);
             }
             RecordField::File => {
-                file = Some(str::from_utf8(value).map_err(|_| ())?);
+                let file_str = str::from_utf8(value).map_err(|_| ())?;
+                debug!("Field File: '{}'", file_str);
+                file = Some(file_str);
             }
             RecordField::Line => {
-                line = Some(u32::from_ne_bytes(value.try_into().map_err(|_| ())?));
+                let line_num = u32::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Field Line: {}", line_num);
+                line = Some(line_num);
             }
             RecordField::NumArgs => {
-                num_args = Some(usize::from_ne_bytes(value.try_into().map_err(|_| ())?));
+                let args_count = usize::from_ne_bytes(value.try_into().map_err(|_| ())?);
+                debug!("Field NumArgs: {}", args_count);
+                num_args = Some(args_count);
             }
         }
 
+        debug!("Remaining buffer length after field {}: {}", i + 1, rest.len());
         buf = rest;
     }
 
