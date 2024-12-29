@@ -665,14 +665,28 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
                 full_log_msg.push_str(&value.format(last_hint.take())?);
             }
             Argument::Str => {
+                debug!("Argument::Str: starting to process string argument");
+                debug!("Raw bytes before utf8 conversion: {:?}", value);
+                debug!("Byte length: {}", value.len());
+                // 打印每个字节的十六进制值
+                let hex_bytes: Vec<String> = value.iter()
+                    .map(|b| format!("{:02x}", b))
+                    .collect();
+                debug!("Hex representation: {}", hex_bytes.join(" "));
+                
                 match str::from_utf8(value) {
                     Ok(v) => {
+                        debug!("Successfully converted to UTF-8 string: '{}'", v);
+                        debug!("String length: {}", v.len());
                         debug!("Argument Str: '{}' (with hint: {:?})", v, last_hint.map(|h| h.0));
                         full_log_msg.push_str(v);
                     }
                     Err(e) => {
                         error!("received invalid utf8 string: {}", e);
                         debug!("Invalid UTF-8 bytes: {:?}", value);
+                        debug!("Error details: {:?}", e);
+                        // 打印错误发生的位置
+                        debug!("UTF-8 error at position: {}", e.valid_up_to());
                     }
                 }
             },
