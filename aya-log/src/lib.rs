@@ -77,9 +77,11 @@ use log::{error, Log, Record};
 use thiserror::Error;
 use log::debug;
 
-debug!("Platform info:");
-debug!("size of usize: {} bytes", size_of::<usize>());
-debug!("size of u32: {} bytes", size_of::<u32>());
+fn print_platform_info() {
+    debug!("Platform info:");
+    debug!("size of usize: {} bytes", size_of::<usize>());
+    debug!("size of u32: {} bytes", size_of::<u32>());
+}
 
 #[allow(dead_code)] // TODO(https://github.com/rust-lang/rust/issues/120770): Remove when false positive is fixed.
 #[derive(Copy, Clone)]
@@ -474,6 +476,8 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
     let mut line = None;
     let mut num_args = None;
 
+    print_platform_info();
+    
     for i in 0..LOG_FIELDS {
         debug!("Reading field {}/{}", i + 1, LOG_FIELDS);
         let (RecordFieldWrapper(tag), value, rest) = try_read(buf)?;
