@@ -514,6 +514,7 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
             RecordField::NumArgs => {
                 let args_count = usize::from_ne_bytes(value.try_into().map_err(|_| ())?);
                 debug!("Field NumArgs: {}", args_count);
+                debug!("About to parse {} arguments with remaining buffer length: {}", args_count, rest.len());
                 num_args = Some(args_count);
             }
         }
