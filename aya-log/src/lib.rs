@@ -579,8 +579,18 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
                 full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::I16 => {
-                let val = i16::from_ne_bytes(value.try_into().map_err(|_| ())?);
-                debug!("Argument I16: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
+                debug!("Converting U16 bytes");
+                debug!("Raw bytes: {:?}", value);
+                debug!("Hex representation: {:02x?}", value);
+                let bytes: [u8; 2] = value.try_into().map_err(|e| {
+                    debug!("Failed to convert to [u8; 2]: value length = {}", value.len());
+                    ()
+                })?;
+                debug!("Successfully converted to [u8; 2]: {:?}", bytes);
+                debug!("Hex representation: {:02x?}", bytes);
+                let val = u16::from_ne_bytes(bytes);
+                debug!("Converted to u16: {}", val);
+                debug!("Argument U16: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
                 full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::I32 => {
