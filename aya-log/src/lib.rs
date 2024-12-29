@@ -722,34 +722,44 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
 }
 
 fn try_read<T: Pod>(mut buf: &[u8]) -> Result<(T, &[u8], &[u8]), ()> {
-    debug!("try_read: input buffer length = {}", buf.len());
+    debug!("try_read: starting with input buffer length = {}", buf.len());
+    debug!("try_read: T size = {}", mem::size_of::<T>());
+    debug!("try_read: LogValueLength size = {}", mem::size_of::<LogValueLength>());
+    debug!("try_read: first few bytes of buffer: {:?}", &buf[..buf.len().min(16)]);
     
-    if buf.len() < mem::size_of::<T>() + mem::size_of::<LogValueLength>() {
-        debug!("try_read: buffer too short, need {} bytes, got {} bytes", 
-            mem::size_of::<T>() + mem::size_of::<LogValueLength>(), 
-            buf.len());
+    let needed_size = mem::size_of::<T>() + mem::size_of::<LogValueLength>();
+    if buf.len() < needed_size {
+        debug!("try_read: FAILED - buffer too short");
+        debug!("try_read: need {} bytes for header, got {} bytes", needed_size, buf.len());
         return Err(());
     }
 
     let tag = unsafe { ptr::read_unaligned(buf.as_ptr() as *const T) };
-    debug!("try_read: read tag of size {}", mem::size_of::<T>());
+    debug!("try_read: successfully read tag");
     buf = &buf[mem::size_of::<T>()..];
+    debug!("try_read: remaining buffer after tag: {} bytes", buf.len());
 
-    let len =
-        LogValueLength::from_ne_bytes(buf[..mem::size_of::<LogValueLength>()].try_into().unwrap());
-    debug!("try_read: value length = {}", len);
+    let len_bytes = &buf[..mem::size_of::<LogValueLength>()];
+    debug!("try_read: length bytes: {:?}", len_bytes);
+    let len = LogValueLength::from_ne_bytes(len_bytes.try_into().unwrap());
+    debug!("try_read: decoded length = {}", len);
     buf = &buf[mem::size_of::<LogValueLength>()..];
+    debug!("try_read: remaining buffer after length: {} bytes", buf.len());
 
     let len: usize = len.into();
     if buf.len() < len {
-        debug!("try_read: buffer too short for value, need {} bytes, got {} bytes",
-            len, buf.len());
+        debug!("try_read: FAILED - buffer too short for value");
+        debug!("try_read: need {} bytes for value, got {} bytes", len, buf.len());
+        debug!("try_read: remaining buffer: {:?}", buf);
         return Err(());
     }
 
     let (value, rest) = buf.split_at(len);
-    debug!("try_read: read value of length {}, remaining buffer length = {}", 
-        value.len(), rest.len());
+    debug!("try_read: successfully split buffer");
+    debug!("try_read: value length = {}, value = {:?}", value.len(), value);
+    debug!("try_read: remaining length = {}, first few bytes = {:?}", 
+        rest.len(), 
+        &rest[..rest.len().min(16)]);
     
     Ok((tag, value, rest))
 }
