@@ -557,6 +557,15 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
     for i in 0..arg_count {
         debug!("Reading argument {}/{}", i + 1, arg_count);
         let (ArgumentWrapper(tag), value, rest) = try_read(buf)?;
+        debug!("Read argument type: {:?}", tag);
+        debug!("Raw argument bytes: {:?}", value);
+        debug!("Argument byte length: {}", value.len());
+        // 打印每个字节的十六进制值
+        let hex_bytes: Vec<String> = value.iter()
+            .map(|b| format!("{:02x}", b))
+            .collect();
+        debug!("Argument hex representation: {}", hex_bytes.join(" "));
+        debug!("Remaining buffer after tag: {} bytes", rest.len());
 
         match tag {
             Argument::DisplayHint => {
