@@ -55,6 +55,7 @@ use std::{
     net::{Ipv4Addr, Ipv6Addr},
     ptr, str,
     sync::Arc,
+    mem::size_of,
 };
 
 const MAP_NAME: &str = "AYA_LOGS";
@@ -75,6 +76,10 @@ use bytes::BytesMut;
 use log::{error, Log, Record};
 use thiserror::Error;
 use log::debug;
+
+debug!("Platform info:");
+debug!("size of usize: {} bytes", size_of::<usize>());
+debug!("size of u32: {} bytes", size_of::<u32>());
 
 #[allow(dead_code)] // TODO(https://github.com/rust-lang/rust/issues/120770): Remove when false positive is fixed.
 #[derive(Copy, Clone)]
