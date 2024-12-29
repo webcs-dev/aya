@@ -634,8 +634,17 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
                 full_log_msg.push_str(&val.format(last_hint.take())?);
             }
             Argument::Ipv4Addr => {
-                let bytes: [u8; 4] = value.try_into().map_err(|_| ())?;
+                debug!("Converting IPv4 address bytes");
+                debug!("Raw bytes: {:?}", value);
+                debug!("Hex representation: {:02x?}", value);
+                let bytes: [u8; 4] = value.try_into().map_err(|e| {
+                    debug!("Failed to convert to [u8; 4]: value length = {}", value.len());
+                    ()
+                })?;
+                debug!("Successfully converted to [u8; 4]: {:?}", bytes);
+                debug!("Hex representation: {:02x?}", bytes);
                 let val = Ipv4Addr::from(bytes);
+                debug!("Converted to IPv4 address: {}", val);
                 debug!("Argument Ipv4Addr: {} (with hint: {:?})", val, last_hint.map(|h| h.0));
                 full_log_msg.push_str(&val.format(last_hint.take())?);
             }
