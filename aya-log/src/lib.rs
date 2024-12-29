@@ -74,6 +74,7 @@ use aya_log_common::{
 use bytes::BytesMut;
 use log::{error, Log, Record};
 use thiserror::Error;
+use log::debug;
 
 #[allow(dead_code)] // TODO(https://github.com/rust-lang/rust/issues/120770): Remove when false positive is fixed.
 #[derive(Copy, Clone)]
@@ -644,23 +645,35 @@ fn log_buf(mut buf: &[u8], logger: &dyn Log) -> Result<(), ()> {
 }
 
 fn try_read<T: Pod>(mut buf: &[u8]) -> Result<(T, &[u8], &[u8]), ()> {
+    debug!("try_read: input buffer length = {}", buf.len());
+    
     if buf.len() < mem::size_of::<T>() + mem::size_of::<LogValueLength>() {
+        debug!("try_read: buffer too short, need {} bytes, got {} bytes", 
+            mem::size_of::<T>() + mem::size_of::<LogValueLength>(), 
+            buf.len());
         return Err(());
     }
 
     let tag = unsafe { ptr::read_unaligned(buf.as_ptr() as *const T) };
+    debug!("try_read: read tag of size {}", mem::size_of::<T>());
     buf = &buf[mem::size_of::<T>()..];
 
     let len =
         LogValueLength::from_ne_bytes(buf[..mem::size_of::<LogValueLength>()].try_into().unwrap());
+    debug!("try_read: value length = {}", len);
     buf = &buf[mem::size_of::<LogValueLength>()..];
 
     let len: usize = len.into();
     if buf.len() < len {
+        debug!("try_read: buffer too short for value, need {} bytes, got {} bytes",
+            len, buf.len());
         return Err(());
     }
 
     let (value, rest) = buf.split_at(len);
+    debug!("try_read: read value of length {}, remaining buffer length = {}", 
+        value.len(), rest.len());
+    
     Ok((tag, value, rest))
 }
 
